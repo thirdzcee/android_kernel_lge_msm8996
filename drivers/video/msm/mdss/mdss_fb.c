@@ -107,6 +107,12 @@
 #if defined(CONFIG_LGE_DISPLAY_DYN_DSI_MODE_SWITCH)
 static int prev_blank_mode;
 #endif
+#define MDSS_BRIGHT_TO_BL_DIMMER(out, v) do {\
+			out = (12*v*v+1393*v+3060)/4465;\
+			} while (0)
+
+bool backlight_dimmer = false;
+module_param(backlight_dimmer, bool, 0755);
 
 static struct fb_info *fbi_list[MAX_FBI_LIST];
 static int fbi_list_index;
@@ -391,10 +397,37 @@ static void mdss_fb_set_bl_brightness(struct led_classdev *led_cdev,
 	if (value > mfd->panel_info->brightness_max)
 		value = mfd->panel_info->brightness_max;
 
-	/* This maps android backlight level 0 to 255 into
-	   driver backlight level 0 to bl_max with rounding */
-	MDSS_BRIGHT_TO_BL(bl_lvl, value, mfd->panel_info->bl_max,
-				mfd->panel_info->brightness_max);
+	/* Check if the current bl is in dim level or not,
+	   except bl = zero */
+	if (mfd->panel_info->bl_dim_check) {
+		bool dim_status = false;
+
+		if ((value > 0) && (value <= mfd->panel_info->bl_dim_check)) {
+			dim_status = true;
+		} else {
+			dim_status = false;
+		}
+
+		if (mfd->panel_info->bl_dim_status != dim_status) {
+			mfd->panel_info->bl_dim_status = dim_status;
+			/* bl_dim_status = true :  dim level
+			   bl_dim_stauts = false : 0 or over dim */
+			htc_battery_backlight_dim_mode_check(mfd->panel_info->bl_dim_status);
+			pr_info("bl_dim_status =%d\n", mfd->panel_info->bl_dim_status);
+		}
+	}
+
+	if (backlight_dimmer) {
+		if (value < 3)
+			bl_lvl = 1;
+		else
+			MDSS_BRIGHT_TO_BL_DIMMER(bl_lvl, value);
+	} else {
+		/* This maps android backlight level 0 to 255 into
+		   driver backlight level 0 to bl_max with rounding */
+		MDSS_BRIGHT_TO_BL(bl_lvl, value, mfd->panel_info->bl_max,
+					mfd->panel_info->brightness_max);
+	}
 
 	if (!bl_lvl && value)
 		bl_lvl = 1;
