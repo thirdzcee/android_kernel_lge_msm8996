@@ -98,6 +98,9 @@ static int firstboot_check = 1;
 #define MICRO_5V    5000000
 #define MICRO_9V    9000000
 
+#define MICRO_5V    5000000
+#define MICRO_9V    9000000
+
 /* AHB2PHY register offsets */
 #define PERIPH_SS_AHB2PHY_TOP_CFG 0x10
 
