@@ -947,4 +947,9 @@ config DIRTYSANTA_FIXUP_SYSFS
 	help
 	  Include sysfs interface for DirtySanta modem fixup.
 
+config STATE_NOTIFIER
+        bool "State Notifier"
+
+source "drivers/soc/qcom/memshare/Kconfig"
+
 endif # ARCH_MSM
