@@ -1,3 +1,4 @@
 include lineageos_h990_defconfig
 #neocore config
 CONFIG_LOCALVERSION=".NeOcOrE"
+CONFIG_BOEFFLA_WL_BLOCKER=y
